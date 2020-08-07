@@ -1,0 +1,25 @@
+
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.30317.65
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BarCodeReader", "BarCodeReader\BarCodeReader.csproj", "{BF2FB539-A00F-4846-93D0-2A86557D81EC}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{BF2FB539-A00F-4846-93D0-2A86557D81EC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BF2FB539-A00F-4846-93D0-2A86557D81EC}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BF2FB539-A00F-4846-93D0-2A86557D81EC}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BF2FB539-A00F-4846-93D0-2A86557D81EC}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {A0FEBFC7-54B2-4AC9-A302-318703CEB3DD}
+	EndGlobalSection
+EndGlobal
