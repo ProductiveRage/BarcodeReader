@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Drawing;
+using System.Drawing.Imaging;
 using System.Linq;
 
 namespace BarCodeReader
@@ -9,10 +10,31 @@ namespace BarCodeReader
     {
         static void Main()
         {
-            using var image = new Bitmap("Source.jpg");
+            const bool saveInterimProgressImages = true; // Set to true to write progress images as the processing occurs
+
+            using var image = new Bitmap("WikiEAN13Example.png");
 
             var barcodeValues = new List<string>();
-            foreach (var area in GetPossibleBarcodeAreasForBitmap(image))
+            var possibleBarcodeAreas = GetPossibleBarcodeAreasForBitmap(image, saveInterimProgressImages);
+            if (saveInterimProgressImages)
+            {
+                using var possibleBarcodeAreaHighlightBitmap = new Bitmap(image.Width, image.Height);
+                using (var g = Graphics.FromImage(possibleBarcodeAreaHighlightBitmap))
+                {
+                    var fullSourceImageRectangle = new Rectangle(0, 0, image.Width, image.Height);
+                    g.DrawImage(image, destRect: fullSourceImageRectangle, srcRect: fullSourceImageRectangle, srcUnit: GraphicsUnit.Pixel);
+                    if (possibleBarcodeAreas.Any())
+                    {
+                        // Outline identified "possible barcode" areas in the progress / preview bitmap - make the outline big enough to see on large images but not so huge that
+                        // they cover much content on smaller images (that calculations here are quite arbitrary but it's only for a sanity check for it doesn't really matter)
+                        var penWidth = Math.Max(2, Math.Min(8, (int)Math.Round(Math.Max(image.Width, image.Width) / 500d)));
+                        using var outliner = new Pen(Color.YellowGreen, penWidth);
+                        g.DrawRectangles(outliner, possibleBarcodeAreas.ToArray());
+                    }
+                }
+                possibleBarcodeAreaHighlightBitmap.Save("PossibleBarcodeAreas.jpg", ImageFormat.Jpeg);
+            }
+            foreach (var area in possibleBarcodeAreas)
             {
                 using var areaBitmap = new Bitmap(area.Width, area.Height);
                 using (var g = Graphics.FromImage(areaBitmap))
@@ -38,7 +60,7 @@ namespace BarCodeReader
             Console.ReadLine();
         }
 
-        private static IEnumerable<Rectangle> GetPossibleBarcodeAreasForBitmap(Bitmap image)
+        private static IEnumerable<Rectangle> GetPossibleBarcodeAreasForBitmap(Bitmap image, bool saveInterimProgressImages)
         {
             var greyScaleImageData = GetGreyscaleData(
                 image,
@@ -58,6 +80,12 @@ namespace BarCodeReader
                 return Math.Max(0, Math.Abs(horizontalChange) - Math.Abs(verticalChange));
             });
 
+            if (saveInterimProgressImages)
+            {
+                using var gradientPreview = combinedGradients.RenderIntensityMap();
+                gradientPreview.Save("CombinedGradients.jpg", ImageFormat.Jpeg);
+            }
+
             const int maxRadiusForGradientBlurring = 2;
             const double thresholdForMaskingGradients = 1d / 3;
 
@@ -67,6 +95,12 @@ namespace BarCodeReader
 
             var mask = Blur(Normalise(combinedGradients), maxRadiusForGradientBlurring)
                 .Transform(value => (value >= thresholdForMaskingGradients));
+
+            if (saveInterimProgressImages)
+            {
+                using var gradientPreview = mask.Transform(value => value ? 1d : 0).RenderIntensityMap();
+                gradientPreview.Save("Mask.jpg", ImageFormat.Jpeg);
+            }
 
             return GetOverlappingObjectBounds(GetDistinctObjects(mask))
                 .Where(boundedObject => boundedObject.Width > boundedObject.Height)
